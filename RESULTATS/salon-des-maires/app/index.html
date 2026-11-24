@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3f6d8c">
+<title>BG Contacts</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bleu: #3f6d8c; --bleu-f: #2f5570; --vert: #8cc63f; --vert-f: #6fa52a;
+    --fond: #f4f7f9; --carte: #ffffff; --texte: #1d2a33; --gris: #6b7a86; --bord: #d5dde3;
+    --rouge: #c0392b; --orange: #d98b19;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--fond); color: var(--texte);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bleu); color: #fff;
+    padding: 12px 16px; border-bottom: 4px solid var(--vert); display: flex; align-items: center; gap: 10px; }
+  header h1 { font-size: 17px; margin: 0; flex: 1; line-height: 1.2; }
+  header h1 small { display: block; font-weight: 400; opacity: .85; font-size: 13px; }
+  header button { background: transparent; border: 1px solid rgba(255,255,255,.5); color: #fff;
+    border-radius: 8px; padding: 6px 10px; font-size: 14px; }
+  main { padding: 16px; max-width: 640px; margin: 0 auto; padding-bottom: 120px; }
+  .hidden { display: none !important; }
+
+  /* Tableau de bord */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .stat { background: var(--carte); border: 1px solid var(--bord); border-radius: 12px; padding: 10px; text-align: center; }
+  .stat b { display: block; font-size: 24px; color: var(--bleu); }
+  .stat span { font-size: 12px; color: var(--gris); }
+  .net { font-size: 13px; padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .net.on { background: #e8f5d8; color: #3d6512; }
+  .net.off { background: #fdeccc; color: #7a4a00; }
+  .net button { border: 0; background: rgba(0,0,0,.08); padding: 6px 10px; border-radius: 8px; font-size: 13px; color: inherit; }
+  .liste { list-style: none; margin: 0; padding: 0; }
+  .liste li { background: var(--carte); border: 1px solid var(--bord); border-radius: 12px; padding: 12px; margin-bottom: 8px;
+    display: flex; gap: 10px; align-items: center; }
+  .liste .info { flex: 1; min-width: 0; }
+  .liste .nom { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .liste .sous { font-size: 13px; color: var(--gris); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { font-size: 12px; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+  .b-sent { background: #e8f5d8; color: #3d6512; }
+  .b-pending { background: #fdeccc; color: #7a4a00; }
+  .b-error { background: #f9dcd8; color: var(--rouge); }
+  .b-local { background: #e6eaee; color: var(--gris); }
+  .urg { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; flex: none; }
+  .u1 { background: var(--rouge); } .u2 { background: var(--orange); } .u3 { background: var(--gris); }
+  .vide { text-align: center; color: var(--gris); padding: 30px 10px; }
+  .fab { position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); max-width: 608px; margin: 0 auto;
+    background: var(--vert); color: #fff; border: 0; border-radius: 14px; padding: 18px; font-size: 19px; font-weight: 700;
+    box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  .fab:active { background: var(--vert-f); }
+  .actions { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+  .btn { border: 1px solid var(--bleu); color: var(--bleu); background: #fff; border-radius: 10px; padding: 10px 14px; font-size: 15px; flex: 1; }
+  .btn.plein { background: var(--bleu); color: #fff; }
+  .btn.rouge { border-color: var(--rouge); color: var(--rouge); }
+
+  /* Formulaire */
+  fieldset { border: 0; background: var(--carte); border-radius: 12px; padding: 12px 14px 14px; margin: 0 0 12px;
+    border-left: 4px solid var(--bleu); }
+  fieldset.vert { border-left-color: var(--vert); }
+  legend { font-weight: 700; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--bleu);
+    padding: 0; display: block; width: 100%; margin-bottom: 4px; }
+  label.ch { display: block; font-size: 13px; color: var(--gris); margin: 8px 0 3px; clear: both; }
+  input[type=text], input[type=tel], input[type=email], input[type=number], textarea {
+    width: 100%; font: inherit; font-size: 17px; padding: 11px 12px; border: 1px solid var(--bord); border-radius: 10px; background: #fff; color: var(--texte); }
+  input:focus, textarea:focus { outline: 2px solid var(--vert); border-color: var(--vert); }
+  textarea { min-height: 80px; resize: vertical; }
+  .ligne { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; clear: both; }
+  .chip { border: 1.5px solid var(--bord); background: #fff; color: var(--texte); border-radius: 99px; padding: 10px 16px; font-size: 16px; }
+  .chip.on { background: var(--bleu); border-color: var(--bleu); color: #fff; }
+  .vert .chip.on { background: var(--vert-f); border-color: var(--vert-f); }
+  .chip.u.on[data-v="1"] { background: var(--rouge); border-color: var(--rouge); }
+  .chip.u.on[data-v="2"] { background: var(--orange); border-color: var(--orange); }
+  .chip.u.on[data-v="3"] { background: var(--gris); border-color: var(--gris); }
+  .aide { font-size: 12px; color: var(--gris); margin-top: 6px; }
+  .rgpd { display: flex; gap: 12px; align-items: center; background: #eef4f8; border-radius: 10px; padding: 12px; margin-top: 12px; font-size: 15px; }
+  .rgpd input { width: 26px; height: 26px; accent-color: var(--vert-f); flex: none; }
+  .erreurs { background: #f9dcd8; color: var(--rouge); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 14px; }
+  .barre { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--bord);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 10px; z-index: 50; }
+  .barre .btn { padding: 15px; font-size: 17px; }
+  .barre .valider { flex: 2; background: var(--vert); border-color: var(--vert); color: #fff; font-weight: 700; }
+
+  /* Fiche détail */
+  dl.detail { background: var(--carte); border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; }
+  dl.detail dt { font-size: 12px; color: var(--gris); margin-top: 8px; }
+  dl.detail dd { margin: 0; font-size: 16px; word-break: break-word; }
+
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 100px; background: var(--texte); color: #fff;
+    padding: 10px 16px; border-radius: 10px; font-size: 15px; z-index: 20; max-width: 90vw; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="titre">Biogents · Contacts<small id="sousTitre"></small></h1>
+  <button id="btnReglages" type="button" aria-label="Réglages">Réglages</button>
+</header>
+
+<!-- ÉCRAN : réglages / premier lancement -->
+<main id="ecranReglages" class="hidden">
+  <h2 style="margin-top:0">Réglages</h2>
+  <fieldset>
+    <legend>Ce téléphone</legend>
+    <label class="ch" for="rCommercial">Votre nom (commercial)</label>
+    <input type="text" id="rCommercial" autocomplete="name" placeholder="Ex. Loïc Cécillon">
+    <label class="ch" for="rSalon">Nom du salon</label>
+    <input type="text" id="rSalon" placeholder="Ex. Salon des Maires 2026">
+    <label class="ch" for="rCode">Code d'accès (fourni par Loïc)</label>
+    <input type="text" id="rCode" autocapitalize="characters" placeholder="BG-XXXXXX">
+    <p class="aide">Sans le bon code, les contacts restent sur le téléphone et ne partent pas dans HubSpot.</p>
+  </fieldset>
+  <div id="reglagesErreur" class="erreurs hidden"></div>
+  <div class="actions"><button class="btn plein" id="btnEnregistrerReglages" type="button">Enregistrer</button></div>
+  <fieldset>
+    <legend>Données</legend>
+    <p class="aide" style="margin-top:0">Pour un nouveau salon : exportez d'abord le CSV, puis videz la liste.</p>
+    <div class="actions"><button class="btn rouge" id="btnVider" type="button">Vider la liste de ce téléphone</button></div>
+  </fieldset>
+</main>
+
+<!-- ÉCRAN : liste -->
+<main id="ecranListe" class="hidden">
+  <div id="net" class="net"></div>
+  <div class="stats">
+    <div class="stat"><b id="sJour">0</b><span>aujourd'hui</span></div>
+    <div class="stat"><b id="sTotal">0</b><span>au total</span></div>
+    <div class="stat"><b id="sChauds">0</b><span>urgence 1</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn" id="btnExport" type="button">Exporter le CSV</button>
+    <button class="btn" id="btnPartager" type="button">Partager le CSV</button>
+  </div>
+  <ul class="liste" id="liste"></ul>
+  <button class="fab" id="btnNouveau" type="button">+ Nouveau contact</button>
+</main>
+
+<!-- ÉCRAN : formulaire -->
+<main id="ecranForm" class="hidden">
+  <div id="formErreurs" class="erreurs hidden"></div>
+  <form id="form" autocomplete="off" novalidate>
+    <fieldset>
+      <legend>Contact</legend>
+      <div class="ligne">
+        <div><label class="ch" for="prenom">Prénom</label><input type="text" id="prenom" autocapitalize="words"></div>
+        <div><label class="ch" for="nom">Nom *</label><input type="text" id="nom" autocapitalize="words"></div>
+      </div>
+      <label class="ch">Statut</label>
+      <div class="chips" data-groupe="statut" data-mode="un">
+        <button type="button" class="chip" data-v="Maire">Maire</button>
+        <button type="button" class="chip" data-v="Élu">Élu</button>
+        <button type="button" class="chip" data-v="DGS">DGS</button>
+        <button type="button" class="chip" data-v="Tech.">Tech.</button>
+      </div>
+      <label class="ch" for="fonction">Fonction (précision)</label>
+      <input type="text" id="fonction" placeholder="Ex. Adjoint à l'environnement">
+    </fieldset>
+
+    <fieldset>
+      <legend>Collectivité</legend>
+      <label class="ch" for="commune">Commune / Interco *</label>
+      <input type="text" id="commune" autocapitalize="words">
+      <div class="ligne">
+        <div><label class="ch" for="dept">Dépt</label><input type="text" id="dept" inputmode="numeric" maxlength="3" placeholder="Ex. 13"></div>
+        <div><label class="ch" for="nbhab">Nb hab.</label><input type="number" id="nbhab" inputmode="numeric" min="0"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Coordonnées</legend>
+      <label class="ch" for="tel">Tél.</label>
+      <input type="tel" id="tel" inputmode="tel">
+      <label class="ch" for="email">E-mail</label>
+      <input type="email" id="email" inputmode="email" autocapitalize="off">
+      <label class="rgpd"><input type="checkbox" id="rgpd"> Accepte d'être recontacté (RGPD)</label>
+      <p class="aide">Sans accord RGPD, le contact reste dans le CSV mais ne part pas dans HubSpot.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Besoin / remarques</legend>
+      <textarea id="besoin" placeholder="Problème de moustique tigre, lieux concernés, budget, échéance…"></textarea>
+    </fieldset>
+
+    <fieldset class="vert">
+      <legend>Quel piège ?</legend>
+      <div class="chips" data-groupe="pieges" data-mode="plusieurs">
+        <button type="button" class="chip" data-v="Urban trap">Urban trap</button>
+        <button type="button" class="chip" data-v="BG-GAT">BG-GAT</button>
+        <button type="button" class="chip" data-v="Hydrofilm">Hydrofilm</button>
+      </div>
+      <label class="ch" for="qte">Quantité</label>
+      <input type="number" id="qte" inputmode="numeric" min="0">
+    </fieldset>
+
+    <fieldset>
+      <legend>Suite à donner</legend>
+      <div class="chips" data-groupe="suites" data-mode="plusieurs">
+        <button type="button" class="chip" data-v="Devis">Devis</button>
+        <button type="button" class="chip" data-v="RDV">RDV</button>
+        <button type="button" class="chip" data-v="Doc">Doc</button>
+        <button type="button" class="chip" data-v="Rappel">Rappel</button>
+      </div>
+      <label class="ch">Urgence *</label>
+      <div class="chips" data-groupe="urgence" data-mode="un">
+        <button type="button" class="chip u" data-v="1">1 · sous 48 h</button>
+        <button type="button" class="chip u" data-v="2">2 · sous 15 j</button>
+        <button type="button" class="chip u" data-v="3">3 · veille</button>
+      </div>
+    </fieldset>
+  </form>
+</main>
+<div class="barre hidden" id="barreForm">
+  <button class="btn" id="btnAnnuler" type="button">Annuler</button>
+  <button class="btn valider" id="btnValider" type="button">Enregistrer</button>
+</div>
+
+<!-- ÉCRAN : détail -->
+<main id="ecranDetail" class="hidden">
+  <dl class="detail" id="detail"></dl>
+  <div class="actions">
+    <button class="btn" id="btnRetour" type="button">Retour</button>
+    <button class="btn plein" id="btnModifier" type="button">Modifier</button>
+    <button class="btn rouge" id="btnSupprimer" type="button">Supprimer</button>
+  </div>
+  <p class="aide" id="detailAide"></p>
+</main>
+
+<script>
+'use strict';
+
+/* ================= CONFIGURATION ================= */
+const CONFIG = {
+  webhook: 'https://hook.eu2.make.com/ep4ax84xb505y2ocbhlpmb8cvkuxnz6m',
+  salonParDefaut: 'Salon des Maires 2026',
+  hubspot: {
+    pipeline: 'default',          // "Pipeline leads"
+    etape: '175452287',           // "A contacter"
+    proprietaire: '735539758'     // Loïc Cécillon
+  },
+  // Urgence -> délai de la tâche de relance (jours) et priorité HubSpot
+  urgences: {
+    '1': { jours: 2,  priorite: 'HIGH',   libelle: 'à rappeler sous 48 h' },
+    '2': { jours: 15, priorite: 'MEDIUM', libelle: 'sous 15 jours' },
+    '3': { jours: 30, priorite: 'LOW',    libelle: 'information / veille' }
+  }
+};
+
+/* ================= STOCKAGE ================= */
+const CLE_CONTACTS = 'bg_contacts_v1';
+const CLE_REGLAGES = 'bg_reglages_v1';
+
+function lire(cle, defaut) {
+  try { const v = localStorage.getItem(cle); return v ? JSON.parse(v) : defaut; } catch (e) { return defaut; }
+}
+function ecrire(cle, valeur) {
+  try { localStorage.setItem(cle, JSON.stringify(valeur)); return true; }
+  catch (e) { toast('Erreur de sauvegarde sur le téléphone !'); return false; }
+}
+let contacts = lire(CLE_CONTACTS, []);
+let reglages = lire(CLE_REGLAGES, null);
+function sauver() { ecrire(CLE_CONTACTS, contacts); }
+
+// Demande au navigateur de ne pas effacer les données
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+/* ================= OUTILS ================= */
+const $ = (id) => document.getElementById(id);
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function jourCle(iso) { return new Date(iso).toLocaleDateString('fr-FR'); }
+function heure(iso) { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }
+function nomComplet(c) { return [c.prenom, c.nom].filter(Boolean).join(' '); }
+let toastTimer;
+function toast(msg) {
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.remove('hidden');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), 2600);
+}
+
+/* ================= NAVIGATION ================= */
+const ecrans = ['ecranReglages', 'ecranListe', 'ecranForm', 'ecranDetail'];
+function afficher(id) {
+  ecrans.forEach((e) => $(e).classList.toggle('hidden', e !== id));
+  $('barreForm').classList.toggle('hidden', id !== 'ecranForm');
+  window.scrollTo(0, 0);
+}
+function majEntete() {
+  $('sousTitre').textContent = reglages ? reglages.salon + ' · ' + reglages.commercial : 'Configuration';
+}
+
+/* ================= RÉGLAGES ================= */
+function ouvrirReglages() {
+  $('rCommercial').value = reglages ? reglages.commercial : '';
+  $('rSalon').value = reglages ? reglages.salon : CONFIG.salonParDefaut;
+  $('rCode').value = reglages ? reglages.code : '';
+  $('reglagesErreur').classList.add('hidden');
+  afficher('ecranReglages');
+}
+$('btnReglages').onclick = ouvrirReglages;
+$('btnEnregistrerReglages').onclick = () => {
+  const r = { commercial: $('rCommercial').value.trim(), salon: $('rSalon').value.trim(), code: $('rCode').value.trim().toUpperCase() };
+  if (!r.commercial || !r.salon || !r.code) {
+    $('reglagesErreur').textContent = 'Merci de remplir les 3 champs.';
+    $('reglagesErreur').classList.remove('hidden');
+    return;
+  }
+  reglages = r; ecrire(CLE_REGLAGES, reglages); majEntete();
+  // Les contacts en erreur (ex. mauvais code) sont remis en file d'attente
+  contacts.forEach((c) => { if (c.statut === 'error') c.statut = 'pending'; }); sauver();
+  afficherListe(); synchroniser();
+};
+$('btnVider').onclick = () => {
+  const enAttente = contacts.filter((c) => c.statut === 'pending' || c.statut === 'error').length;
+  let msg = 'Supprimer les ' + contacts.length + ' contacts de ce téléphone ? Pensez à exporter le CSV avant.';
+  if (enAttente) msg = 'ATTENTION : ' + enAttente + ' contact(s) ne sont pas encore partis dans HubSpot.\n\n' + msg;
+  if (contacts.length && confirm(msg)) { contacts = []; sauver(); toast('Liste vidée'); afficherListe(); }
+};
+
+/* ================= LISTE ================= */
+const LIBELLES_STATUT = { sent: ['Dans HubSpot', 'b-sent'], pending: ['En attente', 'b-pending'], error: ['Erreur', 'b-error'], local: ['CSV seul (RGPD)', 'b-local'] };
+
+function afficherListe() {
+  const aujourdhui = new Date().toLocaleDateString('fr-FR');
+  const tri = contacts.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  $('sJour').textContent = contacts.filter((c) => jourCle(c.createdAt) === aujourdhui).length;
+  $('sTotal').textContent = contacts.length;
+  $('sChauds').textContent = contacts.filter((c) => c.urgence === '1').length;
+  majReseau();
+  const ul = $('liste');
+  if (!tri.length) {
+    ul.innerHTML = '<li class="vide" style="display:block">Aucun contact pour l\'instant.<br>Appuyez sur « + Nouveau contact ».</li>';
+  } else {
+    ul.innerHTML = tri.map((c) => {
+      const [lib, cls] = LIBELLES_STATUT[c.statut] || LIBELLES_STATUT.pending;
+      return '<li data-id="' + c.id + '">' +
+        '<div class="urg u' + esc(c.urgence) + '">' + esc(c.urgence) + '</div>' +
+        '<div class="info"><div class="nom">' + esc(nomComplet(c)) + (c.statut_role ? ' · ' + esc(c.statut_role) : '') + '</div>' +
+        '<div class="sous">' + esc(c.commune) + (c.dept ? ' (' + esc(c.dept) + ')' : '') + ' · ' + jourCle(c.createdAt).slice(0, 5) + ' ' + heure(c.createdAt) + '</div></div>' +
+        '<span class="badge ' + cls + '">' + lib + '</span></li>';
+    }).join('');
+  }
+  afficher('ecranListe');
+}
+$('liste').onclick = (e) => { const li = e.target.closest('li[data-id]'); if (li) ouvrirDetail(li.dataset.id); };
+
+function majReseau() {
+  const attente = contacts.filter((c) => c.statut === 'pending' || c.statut === 'error').length;
+  const n = $('net');
+  if (navigator.onLine) {
+    n.className = 'net on';
+    n.innerHTML = '<span>' + (attente ? attente + ' contact(s) en attente d\'envoi' : 'Connecté · tout est envoyé') + '</span>' +
+      (attente ? '<button type="button" id="btnSync">Envoyer</button>' : '');
+  } else {
+    n.className = 'net off';
+    n.innerHTML = '<span>Hors ligne · ' + attente + ' contact(s) envoyés dès le retour du réseau</span>';
+  }
+  const b = $('btnSync'); if (b) b.onclick = () => synchroniser(true);
+}
+window.addEventListener('online', () => { majReseau(); synchroniser(); });
+window.addEventListener('offline', majReseau);
+
+/* ================= FORMULAIRE ================= */
+let enEdition = null; // id du contact modifié, sinon null
+
+document.querySelectorAll('.chips').forEach((g) => {
+  g.addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    if (g.dataset.mode === 'un') {
+      const etait = b.classList.contains('on');
+      g.querySelectorAll('.chip').forEach((x) => x.classList.remove('on'));
+      if (!etait) b.classList.add('on');
+    } else b.classList.toggle('on');
+  });
+});
+function lireChips(groupe) { return [...document.querySelectorAll('[data-groupe="' + groupe + '"] .chip.on')].map((b) => b.dataset.v); }
+function ecrireChips(groupe, valeurs) {
+  document.querySelectorAll('[data-groupe="' + groupe + '"] .chip').forEach((b) => b.classList.toggle('on', valeurs.includes(b.dataset.v)));
+}
+const CHAMPS = ['prenom', 'nom', 'fonction', 'commune', 'dept', 'nbhab', 'tel', 'email', 'besoin', 'qte'];
+
+function ouvrirForm(contact) {
+  enEdition = contact ? contact.id : null;
+  CHAMPS.forEach((k) => { $(k).value = contact ? (contact[k] || '') : ''; });
+  $('rgpd').checked = contact ? !!contact.rgpd : false;
+  ecrireChips('statut', contact && contact.statut_role ? [contact.statut_role] : []);
+  ecrireChips('pieges', contact ? contact.pieges : []);
+  ecrireChips('suites', contact ? contact.suites : []);
+  ecrireChips('urgence', contact && contact.urgence ? [contact.urgence] : []);
+  $('formErreurs').classList.add('hidden');
+  $('btnValider').textContent = contact ? 'Mettre à jour' : 'Enregistrer';
+  afficher('ecranForm');
+  if (!contact) setTimeout(() => $('prenom').focus(), 50);
+}
+$('btnNouveau').onclick = () => { if (!reglages) return ouvrirReglages(); ouvrirForm(null); };
+$('btnAnnuler').onclick = () => { if (confirm('Abandonner cette fiche ?')) afficherListe(); };
+
+$('btnValider').onclick = () => {
+  const d = {};
+  CHAMPS.forEach((k) => { d[k] = $(k).value.trim(); });
+  d.email = d.email.toLowerCase();
+  d.rgpd = $('rgpd').checked;
+  d.statut_role = lireChips('statut')[0] || '';
+  d.pieges = lireChips('pieges');
+  d.suites = lireChips('suites');
+  d.urgence = lireChips('urgence')[0] || '';
+
+  const err = [];
+  if (!d.nom) err.push('Le nom est obligatoire.');
+  if (!d.commune) err.push('La commune est obligatoire.');
+  if (!d.tel && !d.email) err.push('Il faut au moins un téléphone ou un e-mail.');
+  if (d.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) err.push('L\'e-mail semble incorrect.');
+  if (!d.urgence) err.push('Choisissez une urgence (1, 2 ou 3).');
+  if (err.length) {
+    $('formErreurs').innerHTML = err.map(esc).join('<br>');
+    $('formErreurs').classList.remove('hidden');
+    window.scrollTo(0, 0);
+    return;
+  }
+
+  if (enEdition) {
+    const c = contacts.find((x) => x.id === enEdition);
+    Object.assign(c, d);
+    c.statut = c.rgpd ? 'pending' : 'local';
+  } else {
+    contacts.push(Object.assign({
+      id: uid(), createdAt: new Date().toISOString(),
+      commercial: reglages.commercial, salon: reglages.salon
+    }, d, { statut: d.rgpd ? 'pending' : 'local' }));
+  }
+  sauver();
+  toast(d.rgpd ? 'Contact enregistré ✔' : 'Enregistré (CSV seulement, pas d\'accord RGPD)');
+  afficherListe();
+  synchroniser();
+};
+
+/* ================= DÉTAIL ================= */
+let idDetail = null;
+function ouvrirDetail(id) {
+  const c = contacts.find((x) => x.id === id); if (!c) return;
+  idDetail = id;
+  const lignes = [
+    ['Nom', nomComplet(c)], ['Statut / fonction', [c.statut_role, c.fonction].filter(Boolean).join(' · ')],
+    ['Collectivité', c.commune + (c.dept ? ' (' + c.dept + ')' : '') + (c.nbhab ? ' · ' + c.nbhab + ' hab.' : '')],
+    ['Téléphone', c.tel], ['E-mail', c.email], ['RGPD', c.rgpd ? 'Accepte d\'être recontacté' : 'NON'],
+    ['Besoin / remarques', c.besoin], ['Pièges', c.pieges.join(', ') + (c.qte ? ' · Qté ' + c.qte : '')],
+    ['Suite à donner', c.suites.join(', ')], ['Urgence', c.urgence + ' · ' + CONFIG.urgences[c.urgence].libelle],
+    ['Saisi par', c.commercial + ' · ' + jourCle(c.createdAt) + ' ' + heure(c.createdAt)],
+    ['Statut', (LIBELLES_STATUT[c.statut] || ['?'])[0] + (c.erreur ? ' (' + c.erreur + ')' : '')]
+  ];
+  $('detail').innerHTML = lignes.filter((l) => l[1]).map((l) => '<dt>' + esc(l[0]) + '</dt><dd>' + esc(l[1]) + '</dd>').join('');
+  const envoye = c.statut === 'sent';
+  $('btnModifier').classList.toggle('hidden', envoye);
+  $('btnSupprimer').classList.toggle('hidden', envoye);
+  $('detailAide').textContent = envoye ? 'Ce contact est déjà dans HubSpot : les modifications se font directement dans HubSpot.' : '';
+  afficher('ecranDetail');
+}
+$('btnRetour').onclick = afficherListe;
+$('btnModifier').onclick = () => ouvrirForm(contacts.find((x) => x.id === idDetail));
+$('btnSupprimer').onclick = () => {
+  if (!confirm('Supprimer ce contact du téléphone ?')) return;
+  contacts = contacts.filter((x) => x.id !== idDetail); sauver(); afficherListe();
+};
+
+/* ================= ENVOI VERS HUBSPOT (via Make) ================= */
+function assoc(id, typeId) {
+  return { to: { id: id }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: typeId }] };
+}
+function resume(c, sep) {
+  return [
+    'Salon : ' + c.salon + ' (' + jourCle(c.createdAt) + ', saisi par ' + c.commercial + ')',
+    'Contact : ' + nomComplet(c) + (c.statut_role ? ' – ' + c.statut_role : '') + (c.fonction ? ' – ' + c.fonction : ''),
+    'Collectivité : ' + c.commune + (c.dept ? ' (' + c.dept + ')' : '') + (c.nbhab ? ' – ' + c.nbhab + ' hab.' : ''),
+    'Pièges : ' + (c.pieges.join(', ') || '–') + (c.qte ? ' – Qté : ' + c.qte : ''),
+    'Suite à donner : ' + (c.suites.join(', ') || '–'),
+    'Urgence : ' + c.urgence + ' (' + CONFIG.urgences[c.urgence].libelle + ')',
+    'RGPD : accepte d\'être recontacté',
+    'Besoin / remarques : ' + (c.besoin || '–')
+  ].join(sep);
+}
+function construirePayload(c) {
+  const H = CONFIG.hubspot;
+  const u = CONFIG.urgences[c.urgence];
+  const proprietes = {
+    firstname: c.prenom, lastname: c.nom, phone: c.tel,
+    jobtitle: [c.statut_role, c.fonction].filter(Boolean).join(' – '),
+    company: c.commune + (c.dept ? ' (' + c.dept + ')' : '')
+  };
+  Object.keys(proprietes).forEach((k) => { if (!proprietes[k]) delete proprietes[k]; });
+  let contactUrl, contactBody;
+  if (c.email) {
+    proprietes.email = c.email;
+    contactUrl = '/crm/v3/objects/contacts/batch/upsert';
+    contactBody = { inputs: [{ idProperty: 'email', id: c.email, properties: proprietes }] };
+  } else {
+    contactUrl = '/crm/v3/objects/contacts';
+    contactBody = { properties: proprietes };
+  }
+  const nomDeal = c.salon + ' – ' + c.commune + (c.pieges.length ? ' – ' + c.pieges.join(', ') : '');
+  const deal = {
+    properties: { dealname: nomDeal, pipeline: H.pipeline, dealstage: H.etape, hubspot_owner_id: H.proprietaire, description: resume(c, '\n') },
+    associations: [assoc('__CONTACT_ID__', 3)]
+  };
+  const note = {
+    properties: { hs_timestamp: c.createdAt, hs_note_body: resume(c, '<br>').split('<br>').map(esc).join('<br>'), hubspot_owner_id: H.proprietaire },
+    associations: [assoc('__CONTACT_ID__', 202), assoc('__DEAL_ID__', 214)]
+  };
+  const echeance = new Date(c.createdAt); echeance.setDate(echeance.getDate() + u.jours); echeance.setHours(9, 0, 0, 0);
+  const tache = {
+    properties: {
+      hs_timestamp: echeance.toISOString(),
+      hs_task_subject: 'Rappeler ' + nomComplet(c) + ' – ' + c.commune + ' (' + c.salon + ')',
+      hs_task_body: resume(c, '\n'), hs_task_status: 'NOT_STARTED', hs_task_priority: u.priorite,
+      hs_task_type: 'CALL', hubspot_owner_id: H.proprietaire
+    },
+    associations: [assoc('__CONTACT_ID__', 204), assoc('__DEAL_ID__', 216)]
+  };
+  return {
+    key: reglages.code, appId: c.id, salon: c.salon, commercial: c.commercial,
+    contactUrl: contactUrl, contactBody: JSON.stringify(contactBody),
+    dealBody: JSON.stringify(deal), noteBody: JSON.stringify(note), taskBody: JSON.stringify(tache)
+  };
+}
+
+let syncEnCours = false;
+async function synchroniser(manuel) {
+  if (syncEnCours || !reglages) return;
+  if (!navigator.onLine) { if (manuel) toast('Pas de réseau'); return; }
+  const aEnvoyer = contacts.filter((c) => c.statut === 'pending' || (manuel && c.statut === 'error'));
+  if (!aEnvoyer.length) return;
+  syncEnCours = true;
+  let ok = 0, ko = 0;
+  for (const c of aEnvoyer) {
+    try {
+      const corps = new URLSearchParams(construirePayload(c));
+      // Format formulaire = requête "simple" : pas de pré-vérification CORS
+      const r = await fetch(CONFIG.webhook, { method: 'POST', body: corps });
+      const texte = await r.text();
+      if (r.ok && texte.indexOf('"ok":true') !== -1) {
+        c.statut = 'sent'; c.sentAt = new Date().toISOString(); delete c.erreur; ok++;
+      } else {
+        c.statut = 'error'; c.erreur = 'HTTP ' + r.status + ' ' + texte.slice(0, 80); ko++;
+      }
+    } catch (e) {
+      // Erreur réseau : on retentera plus tard
+      c.erreur = 'réseau'; ko++;
+      sauver(); break;
+    }
+    sauver();
+  }
+  syncEnCours = false;
+  if (manuel || ok) toast(ok + ' envoyé(s) dans HubSpot' + (ko ? ' · ' + ko + ' en échec' : ''));
+  if (!$('ecranListe').classList.contains('hidden')) afficherListe();
+}
+setInterval(() => synchroniser(false), 60000);
+
+/* ================= EXPORT CSV ================= */
+function csv() {
+  const cols = [
+    ['Date', (c) => jourCle(c.createdAt)], ['Heure', (c) => heure(c.createdAt)], ['Salon', (c) => c.salon], ['Commercial', (c) => c.commercial],
+    ['Prénom', (c) => c.prenom], ['Nom', (c) => c.nom], ['Statut', (c) => c.statut_role], ['Fonction', (c) => c.fonction],
+    ['Commune / Interco', (c) => c.commune], ['Dépt', (c) => c.dept], ['Nb hab.', (c) => c.nbhab],
+    ['Tél.', (c) => c.tel], ['E-mail', (c) => c.email], ['RGPD', (c) => (c.rgpd ? 'Oui' : 'Non')],
+    ['Besoin / remarques', (c) => c.besoin],
+    ['Urban trap', (c) => (c.pieges.includes('Urban trap') ? 'X' : '')], ['BG-GAT', (c) => (c.pieges.includes('BG-GAT') ? 'X' : '')],
+    ['Hydrofilm', (c) => (c.pieges.includes('Hydrofilm') ? 'X' : '')], ['Qté', (c) => c.qte],
+    ['Devis', (c) => (c.suites.includes('Devis') ? 'X' : '')], ['RDV', (c) => (c.suites.includes('RDV') ? 'X' : '')],
+    ['Doc', (c) => (c.suites.includes('Doc') ? 'X' : '')], ['Rappel', (c) => (c.suites.includes('Rappel') ? 'X' : '')],
+    ['Urgence', (c) => c.urgence], ['Envoyé HubSpot', (c) => (c.statut === 'sent' ? 'Oui' : 'Non')]
+  ];
+  const cell = (v) => { v = String(v == null ? '' : v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const tri = contacts.slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const lignes = [cols.map((c) => cell(c[0])).join(';')].concat(tri.map((c) => cols.map((col) => cell(col[1](c))).join(';')));
+  return '﻿' + lignes.join('\r\n'); // BOM : accents corrects dans Excel
+}
+function nomFichier() {
+  const s = (reglages ? reglages.salon : 'salon').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-');
+  const n = (reglages ? reglages.commercial : '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-');
+  return s + '_contacts_' + n + '_' + new Date().toISOString().slice(0, 10) + '.csv';
+}
+$('btnExport').onclick = () => {
+  if (!contacts.length) return toast('Aucun contact à exporter');
+  const url = URL.createObjectURL(new Blob([csv()], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = nomFichier(); document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+};
+$('btnPartager').onclick = async () => {
+  if (!contacts.length) return toast('Aucun contact à exporter');
+  const f = new File([csv()], nomFichier(), { type: 'text/csv' });
+  if (navigator.canShare && navigator.canShare({ files: [f] })) {
+    try { await navigator.share({ files: [f], title: 'Contacts ' + (reglages ? reglages.salon : '') }); } catch (e) {}
+  } else { toast('Partage non disponible : utilisez « Exporter »'); }
+};
+
+/* ================= DÉMARRAGE ================= */
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+majEntete();
+if (reglages) { afficherListe(); synchroniser(); } else ouvrirReglages();
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+{
+  "name": "Salon contacts → HubSpot (app Biogents)",
+  "metadata": {
+    "version": 1
+  },
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 4537226,
+        "maxResults": 1
+      },
+      "mapper": {}
+    },
+    {
+      "id": 2,
+      "module": "hubspotcrm:MakeAPICall",
+      "version": 2,
+      "parameters": {
+        "__IMTCONN__": 14757288
+      },
+      "filter": {
+        "name": "Code d'accès valide",
+        "conditions": [
+          [
+            {
+              "a": "{{1.key}}",
+              "o": "text:equal",
+              "b": "__CODE_ACCES__"
+            }
+          ]
+        ]
+      },
+      "mapper": {
+        "url": "{{1.contactUrl}}",
+        "method": "POST",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": "{{1.contactBody}}"
+      }
+    },
+    {
+      "id": 3,
+      "module": "hubspotcrm:MakeAPICall",
+      "version": 2,
+      "parameters": {
+        "__IMTCONN__": 14757288
+      },
+      "mapper": {
+        "url": "/crm/v3/objects/deals",
+        "method": "POST",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": "{{replace(1.dealBody; \"__CONTACT_ID__\"; ifempty(2.body.id; get(map(2.body.results; \"id\"); 1)))}}"
+      }
+    },
+    {
+      "id": 4,
+      "module": "hubspotcrm:MakeAPICall",
+      "version": 2,
+      "parameters": {
+        "__IMTCONN__": 14757288
+      },
+      "mapper": {
+        "url": "/crm/v3/objects/notes",
+        "method": "POST",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": "{{replace(replace(1.noteBody; \"__CONTACT_ID__\"; ifempty(2.body.id; get(map(2.body.results; \"id\"); 1))); \"__DEAL_ID__\"; 3.body.id)}}"
+      }
+    },
+    {
+      "id": 5,
+      "module": "hubspotcrm:MakeAPICall",
+      "version": 2,
+      "parameters": {
+        "__IMTCONN__": 14757288
+      },
+      "mapper": {
+        "url": "/crm/v3/objects/tasks",
+        "method": "POST",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": "{{replace(replace(1.taskBody; \"__CONTACT_ID__\"; ifempty(2.body.id; get(map(2.body.results; \"id\"); 1))); \"__DEAL_ID__\"; 3.body.id)}}"
+      }
+    },
+    {
+      "id": 6,
+      "module": "gateway:WebhookRespond",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "status": "200",
+        "body": "{\"ok\":true,\"dealId\":\"{{3.body.id}}\"}",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }
+        ]
+      }
+    }
+  ]
+}
